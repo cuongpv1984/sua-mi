@@ -5,7 +5,14 @@ import matter from "gray-matter";
 
 const root = process.cwd();
 const postsDir = path.join(root, "src", "content", "posts");
-const model = process.env.OPENAI_MODEL || "gpt-5.6-luna";
+const preferredModel = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const fallbackModels = [
+  preferredModel,
+  "gpt-4o-mini",
+  "gpt-4o",
+  "gpt-4.1-mini",
+  "gpt-4.1",
+].filter((value, index, list) => value && list.indexOf(value) === index);
 const topic = process.env.SITE_TOPIC || "Meo cong nghe va nang suat cho nguoi dung pho thong";
 const language = process.env.SITE_LANGUAGE || "vi";
 const publishDraft = process.env.PUBLISH_DRAFT === "true";
@@ -51,7 +58,7 @@ function extractJson(text) {
   return JSON.parse(fenced ? fenced[1] : trimmed);
 }
 
-async function requestArticle() {
+async function requestArticleWithModel(modelName) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error("Missing OPENAI_API_KEY. Copy .env.example to .env and add your key.");
@@ -97,7 +104,7 @@ Rules:
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model,
+      model: modelName,
       input: [prompt],
       text: {
         format: {
@@ -109,7 +116,10 @@ Rules:
 
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(`OpenAI request failed: ${response.status} ${body}`);
+    const error = new Error(`OpenAI request failed for model ${modelName}: ${response.status} ${body}`);
+    error.status = response.status;
+    error.body = body;
+    throw error;
   }
 
   const data = await response.json();
@@ -123,6 +133,28 @@ Rules:
   }
 
   return extractJson(output);
+}
+
+async function requestArticle() {
+  const errors = [];
+
+  for (const modelName of fallbackModels) {
+    try {
+      console.log(`Trying OpenAI model: ${modelName}`);
+      return await requestArticleWithModel(modelName);
+    } catch (error) {
+      const body = String(error.body || error.message || "");
+      if (error.status === 403 && body.includes("model_not_found")) {
+        errors.push(`${modelName}: no access`);
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(
+    `No configured OpenAI model is available for this API key/project. Tried: ${errors.join(", ")}. Open the OpenAI dashboard, check the project's model access, or set GitHub variable OPENAI_MODEL to a model your project can use.`
+  );
 }
 
 async function writeArticle(article) {
