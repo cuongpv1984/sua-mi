@@ -1,0 +1,211 @@
+---
+import { site } from "@/data/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+}
+
+const {
+  title = site.name,
+  description = site.description,
+  canonical = Astro.url.href,
+} = Astro.props;
+
+const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
+---
+
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: site.name,
+      url: site.url,
+      description: site.description,
+    })} />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fbfbf8;
+        --text: #1e2420;
+        --muted: #667066;
+        --line: #d9ddd5;
+        --brand: #126149;
+        --brand-soft: #e5f2ed;
+        --surface: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 17px;
+        line-height: 1.7;
+      }
+
+      a {
+        color: var(--brand);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 4px;
+      }
+
+      .wrap {
+        width: min(100% - 32px, 940px);
+        margin: 0 auto;
+      }
+
+      header {
+        border-bottom: 1px solid var(--line);
+        background: rgba(251, 251, 248, 0.92);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 0;
+      }
+
+      .brand {
+        color: var(--text);
+        font-size: 20px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        font-size: 15px;
+      }
+
+      main {
+        padding: 42px 0 64px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.25;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: clamp(32px, 7vw, 54px);
+      }
+
+      h2 {
+        margin-top: 40px;
+        font-size: 28px;
+      }
+
+      .lead {
+        max-width: 720px;
+        color: var(--muted);
+        font-size: 19px;
+      }
+
+      .post-list {
+        display: grid;
+        gap: 18px;
+        margin-top: 32px;
+      }
+
+      .post-card {
+        padding: 22px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .post-card h2 {
+        margin: 5px 0 8px;
+        font-size: 25px;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .category-pill {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: var(--brand-soft);
+        color: var(--brand);
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      article {
+        max-width: 760px;
+      }
+
+      article p,
+      article li {
+        color: #2d342f;
+      }
+
+      article img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .footer {
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 14px;
+        padding: 28px 0;
+      }
+
+      @media (max-width: 680px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        main {
+          padding-top: 32px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap topbar">
+        <a class="brand" href="/">{site.name}</a>
+        <nav aria-label="Dieu huong chinh">
+          <a href="/">Bai moi</a>
+          <a href="/rss.xml">RSS</a>
+        </nav>
+      </div>
+    </header>
+    <main class="wrap">
+      <slot />
+    </main>
+    <footer class="footer">
+      <div class="wrap">© {new Date().getFullYear()} {site.name}</div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { slugify } from "@/lib/slug";
+
+export async function getStaticPaths() {
+  const allPosts = (await getCollection("posts")).filter((post) => !post.data.draft);
+  const categories = [...new Set(allPosts.map((post) => post.data.category))];
+  return categories.map((category) => ({
+    params: { slug: slugify(category) },
+    props: {
+      category,
+      posts: allPosts
+        .filter((post) => post.data.category === category)
+        .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf()),
+    },
+  }));
+}
+
+const { category, posts } = Astro.props;
+---
+
+<BaseLayout
+  title={`Danh muc ${category}`}
+  description={`Cac bai viet moi trong danh muc ${category}.`}
+>
+  <h1>{category}</h1>
+  <p class="lead">Tat ca bai viet thuoc danh muc {category}.</p>
+
+  <div class="post-list">
+    {posts.map((post) => (
+      <article class="post-card">
+        <div class="meta">{post.data.publishedAt.toLocaleDateString("vi-VN")}</div>
+        <h2>
+          <a href={`/bai-viet/${post.slug}/`}>{post.data.title}</a>
+        </h2>
+        <p>{post.data.description}</p>
+      </article>
+    ))}
+  </div>
+</BaseLayout>

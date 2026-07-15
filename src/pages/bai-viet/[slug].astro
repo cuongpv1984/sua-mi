@@ -1,0 +1,77 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { site } from "@/data/site";
+import { slugify } from "@/lib/slug";
+
+export async function getStaticPaths() {
+  const posts = (await getCollection("posts")).filter((post) => !post.data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+const published = post.data.publishedAt.toISOString();
+const modified = (post.data.updatedAt || post.data.publishedAt).toISOString();
+const canonical = new URL(`/bai-viet/${post.slug}/`, site.url).href;
+const categoryUrl = `/danh-muc/${slugify(post.data.category)}/`;
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: published,
+  dateModified: modified,
+  author: {
+    "@type": "Organization",
+    name: site.author,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: site.name,
+  },
+  mainEntityOfPage: canonical,
+};
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Trang chu",
+      item: site.url,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: post.data.category,
+      item: new URL(categoryUrl, site.url).href,
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: post.data.title,
+      item: canonical,
+    },
+  ],
+};
+---
+
+<BaseLayout title={post.data.title} description={post.data.description} canonical={canonical}>
+  <article>
+    <p class="meta">
+      <a class="category-pill" href={categoryUrl}>{post.data.category}</a>
+      {" "}
+      Dang ngay {post.data.publishedAt.toLocaleDateString("vi-VN")}
+    </p>
+    <h1>{post.data.title}</h1>
+    <p class="lead">{post.data.description}</p>
+    <Content />
+  </article>
+  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+</BaseLayout>

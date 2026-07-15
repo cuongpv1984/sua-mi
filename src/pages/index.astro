@@ -1,0 +1,49 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { site } from "@/data/site";
+import { slugify } from "@/lib/slug";
+
+const posts = (await getCollection("posts"))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+
+const categories = [...new Set(posts.map((post) => post.data.category))].sort();
+---
+
+<BaseLayout title={site.name} description={site.description}>
+  <section>
+    <h1>{site.name}</h1>
+    <p class="lead">{site.description}</p>
+  </section>
+
+  <section aria-label="Danh muc">
+    <h2>Danh muc</h2>
+    <p>
+      {categories.map((category) => (
+        <a class="category-pill" href={`/danh-muc/${slugify(category)}/`}>{category}</a>
+      ))}
+    </p>
+  </section>
+
+  <section aria-label="Bai viet moi">
+    <h2>Bai moi</h2>
+    <div class="post-list">
+      {posts.map((post) => (
+        <article class="post-card">
+          <div class="meta">
+            <a class="category-pill" href={`/danh-muc/${slugify(post.data.category)}/`}>
+              {post.data.category}
+            </a>
+            {" "}
+            {post.data.publishedAt.toLocaleDateString("vi-VN")}
+          </div>
+          <h2>
+            <a href={`/bai-viet/${post.slug}/`}>{post.data.title}</a>
+          </h2>
+          <p>{post.data.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
