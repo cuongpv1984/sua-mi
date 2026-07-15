@@ -37,4 +37,6 @@ Workflow mau nam trong `.github/workflows/daily-ai-post.yml`. Khi dua len GitHub
 - Variable: `SITE_URL`
 - Variable tuy chon: `SITE_TOPIC`, `OPENAI_MODEL`
 
+Model mac dinh la `gpt-5.6-luna`, phu hop voi viec tao noi dung hang ngay va toi uu chi phi.
+
 Luu y: nen kiem tra dinh ky bai AI de tranh noi dung mong, sai hoac trung lap.

@@ -5,7 +5,7 @@ import matter from "gray-matter";
 
 const root = process.cwd();
 const postsDir = path.join(root, "src", "content", "posts");
-const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const model = process.env.OPENAI_MODEL || "gpt-5.6-luna";
 const topic = process.env.SITE_TOPIC || "Meo cong nghe va nang suat cho nguoi dung pho thong";
 const language = process.env.SITE_LANGUAGE || "vi";
 const publishDraft = process.env.PUBLISH_DRAFT === "true";
